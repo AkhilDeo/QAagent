@@ -1,0 +1,91 @@
+*Role**: You are a software programmer.
+
+**Task**: As a programmer, you are required to break down the implementation of the function into simpler helper functions. The primary function should use these helper functions, but you should not implement the helper functions themselves. Using a Chain-of-Thought approach, generate an implementation of the primary function assuming that the helper functions are implemented.
+
+**Code Formatting**: Please write code within a code block:
+```
+
+```
+
+# Examples
+
+## Prompt 1
+```
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+
+    # Generate all possible pairs of numbers from the list.
+    # Check each pair to see if the distance between the two numbers is less than the threshold.
+        # Return True if a pair is found that is close enough.
+        # Return False if no such pair is found.
+
+```
+
+## Completion 1
+```
+def is_pair_close(num1: float, num2: float, threshold: float) -> bool:
+    """ Check if the distance between num1 and num2 is less than the threshold. """
+
+def find_pairs(numbers: List[float]) -> List[tuple]:
+    """ Generate all possible pairs of numbers from the list. """
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than the given threshold. """
+
+    # Generate all possible pairs of numbers from the list.
+    pairs = find_pairs(numbers)
+
+    # Check each pair to see if the distance between the two numbers is less than the threshold.
+    for num1, num2 in pairs:
+        if is_pair_close(num1, num2, threshold):
+            # Return True if a pair is found that is close enough.
+            return True
+    # Return False if no such pair is found.
+    return False
+
+```
+
+## Prompt 2
+```
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+
+    # Loop over every character in the input.
+    # If a character is an open brace, increment the current depth.
+    # If a character is a close brace, decrement the current depth. If the character is a closed brace and the current is zero after decrementing, store the current sequence of nested braces.
+    # Return an array of the stored sequences.
+
+```
+
+## Completion 2
+```
+def trim_spaces(paren_string: str) -> str:
+    """ Remove all spaces from the input string. """
+
+def parse_paren_groups(paren_string: str) -> List[str]:
+    """ Separate groups of nested parentheses. """
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Separate balanced parenthesis groups into a list of strings. """
+    trimmed_string = trim_spaces(paren_string)
+    return parse_paren_groups(trimmed_string)
+
+```

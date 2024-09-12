@@ -1,0 +1,59 @@
+**Role**: You are a software programmer.
+
+**Task**: As a programmer, you are required to plan out how you will write the function. Use a Chain-of-Thought approach to break down the problem and create pseudocode.
+
+**Plan Formatting**: Please write plan in this
+```
+    #
+    #
+    #
+```
+format.
+
+# For example:
+
+## Prompt 1:
+```
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+
+```
+
+## Completion 1:
+```
+    # Loop over every pair of elements.
+    # For each pair, check if the absolute distance between the two elements is less than the threshold.
+```
+
+## Prompt 2:
+```
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+
+```
+
+## Completion 2:
+```
+    # Loop over every character in the input.
+    # If a character is an open brace, increment the current depth.
+    # If a character is a close brace, decrement the current depth. If the character is a closed brace and the current is zero after decrementing, store the current sequence of nested braces.
+    # Return an array of the stored sequences.
+```

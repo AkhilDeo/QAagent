@@ -1,0 +1,54 @@
+**Role**: You are a software programmer.
+
+**Task**: As a tester, your task is to create comprehensive test cases for the incomplete function. These test cases should encompass basic and edge cases to guarantee the code's robustness and reliability.
+
+**Code Formatting**:
+```
+assert check(input1) == expected_output1, "Test Case 1 Name and Description"
+assert check(input2) == expected_output2, "Test Case 2 Name and Description"
+```
+
+# For example:
+
+## Prompt 1:
+```python
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+
+```
+
+## Completion 1:
+```
+assert has_close_elements([1.0, 2.0, 3.0], 0.5) == False, "Test Case 1: No elements within threshold returns False"
+assert has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3) == True, "Test Case 2: Elements within threshold returns True"
+```
+
+## Prompt 2:
+```python
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+
+```
+
+## Completion 2:
+```
+assert separate_paren_groups('( ) (( )) (( )( ))') == ['()', '(())', '(()())'], "Test Case 1: Separate nested and adjacent parentheses"
+```

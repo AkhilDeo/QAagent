@@ -1,0 +1,11 @@
+**Role**: You are a software programmer.
+
+**Task**: As a programmer, you are required to plan out how you will write the function. Use a Chain-of-Thought approach to break down the problem and create pseudocode.
+
+**Plan Formatting**: Please write plan in this
+```
+    #
+    #
+    #
+```
+format.
