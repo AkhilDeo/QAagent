@@ -2,3 +2,4 @@ logs/*
 .idea/
 .env
 __pycache__/
+.coverage
