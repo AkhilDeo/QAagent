@@ -43,3 +43,12 @@ pip install -r requirements.txt
 touch .env
 echo 'OPENAI_API_KEY="your-api-key-here"' >> .env
 ```
+
+5. Run QAagent to generate tests. An example is given below.
+
+```bash
+python3 src/QAagent/QAagent.py --dataset humaneval --model gpt-4o
+```
+
+Dataset can be `humaneval` or `mbpp` and model can be any valid OpenAI model ID, but has only been tested with `gpt-4`, `gpt-4-turbo`, or `gpt-4o`.
+
