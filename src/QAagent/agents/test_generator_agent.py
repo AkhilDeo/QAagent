@@ -9,12 +9,12 @@ def generate_test_code(problem, problem_id, prompt_path, model, logger):
         full_test_generator_prompt = f"""
         {test_generator_prompt}
 
-        ## Prompt:
+        ## Prompt 3:
         ```
         {problem}
         ```
 
-        ## Completion:
+        ## Completion 3:
         """
         messages = [{"role": "system", "content": "You are a software programmer."},
                     {"role": "user", "content": full_test_generator_prompt}]
@@ -22,7 +22,8 @@ def generate_test_code(problem, problem_id, prompt_path, model, logger):
             generated_tests, input_token_count, output_token_count = call_and_handle(messages, model)
             print("RAW Generated tests: " + generated_tests.choices[0].message.content)
             logger.info("Task ID: " + problem_id + ": Generated tests: " + generated_tests.choices[0].message.content)
-            return process_block(generated_tests.choices[0].message.content), input_token_count, output_token_count
+            messages.append({"role": "assistant", "content": process_block(generated_tests.choices[0].message.content)})
+            return process_block(generated_tests.choices[0].message.content), input_token_count, output_token_count, messages
 
         except Exception as e:
             print(e)

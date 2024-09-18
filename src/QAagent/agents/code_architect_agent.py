@@ -10,11 +10,11 @@ def architect_code(problem, prompt_path, model):
         full_code_architect_prompt = f"""
         {architect_prompt}
 
-        ## Prompt:
+        ## Prompt 3:
         ```
         {problem_prompt}
         ```
-        ## Completion:
+        ## Completion 3:
         """
         messages = [{"role": "system", "content": "You are a software programmer."},
                     {"role": "user", "content": full_code_architect_prompt}]

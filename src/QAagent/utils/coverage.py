@@ -1,8 +1,8 @@
 import os
 import coverage
-import subprocess
 from io import StringIO
 import runpy
+from src.QAagent.tools.parse_coverage_html import extract_success_percentage
 
 def get_coverage(code_string, test_string, problem_id, log_folder):
 
@@ -75,3 +75,24 @@ def get_coverage(code_string, test_string, problem_id, log_folder):
         cov_five.erase()
 
     return first_five_coverage_report, total_coverage_report
+
+def extract_coverage_percentages(problem_folder, problem_name):
+    """Extracts coverage percentages from HTML reports."""
+    current_first_five_coverage_percentage = 0.0
+    current_total_coverage_percentage = 0.0
+
+    try:
+        with open(os.path.join(problem_folder, 'first_five_coverage', 'function_index.html'), 'r',
+                  encoding='utf-8') as file:
+            html_content_first_five = file.read()
+        first_five_success_percentage = extract_success_percentage(html_content_first_five, problem_name["entry_point"])
+        current_first_five_coverage_percentage = float(first_five_success_percentage.rstrip('%'))
+
+        with open(os.path.join(problem_folder, 'total_coverage', 'function_index.html'), 'r', encoding='utf-8') as file:
+            html_content_total = file.read()
+        total_success_percentage = extract_success_percentage(html_content_total, problem_name["entry_point"])
+        current_total_coverage_percentage = float(total_success_percentage.rstrip('%'))
+    except ValueError as e:
+        print(e)
+
+    return current_first_five_coverage_percentage, current_total_coverage_percentage
