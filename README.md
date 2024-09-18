@@ -41,7 +41,7 @@ pip install -r requirements.txt
 4. Create a `.env` file and set your OpenAI API key. This command creates the `.env`, update the `.env` with your API key.
 ```bash
 touch .env
-echo 'OPENAI_API_KEY="your-api-key-here"' >> .env
+echo 'OPENAI_API_KEY=your-api-key-here' >> .env
 ```
 
 5. Run QAagent to generate tests. An example is given below.
