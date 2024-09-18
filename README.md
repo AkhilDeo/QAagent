@@ -52,3 +52,16 @@ python3 src/QAagent/QAagent.py --dataset humaneval --model gpt-4o
 
 Dataset can be `humaneval` or `mbpp` and model can be any valid OpenAI model ID, but has only been tested with `gpt-4`, `gpt-4-turbo`, or `gpt-4o`.
 
+## Results of QAagent on 2 Benchmarks
+
+We evaluated QAagent on test generation on problems from two benchmarks: Humaneval and MBPP. The results are shown below.
+
+### Coverage
+
+Following the manner in which coverage is presented in other works, we present the coverage of the first 5 tests / coverage of all generated tests.
+
+**Approach** | **Humaneval** | **MBPP**
+
+### Accuracy
+
+**Approach** | **Humaneval** | **MBPP**
