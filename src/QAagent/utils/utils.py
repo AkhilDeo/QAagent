@@ -1,7 +1,6 @@
 import json
 import argparse
 from typing import Dict, Iterable
-from logging import create_log_folder, setup_logger
 
 def read_problems(filename: str) -> list:
     return list(stream_jsonl(filename))
