@@ -1,0 +1,47 @@
+**Role**: You are a software programmer.
+
+**Task**: As a tester, your task is to create comprehensive test cases for the incomplete function. These test cases should encompass basic and edge cases to guarantee the code's robustness and reliability.
+
+**Code Formatting**:
+```
+assert check(input1) == expected_output1, "Test Case 1 Name and Description"
+assert check(input2) == expected_output2, "Test Case 2 Name and Description"
+```
+
+# For example:
+
+## Prompt 1:
+```
+def remove_Occ(s,ch):
+    """
+    Write a python function to remove first and last occurrence of a given character from the string.
+    """
+
+```
+
+## Completion 1:
+```
+assert remove_Occ("abracadabra", "a") == "bracadabr", "Test Case 1: Remove first and last 'a'"
+assert remove_Occ("hello", "x") == "hello", "Test Case 2: Character not present in string"
+assert remove_Occ("hello", "l") == "heo", "Test Case 3: Remove first and last 'l'"
+assert remove_Occ("banana", "b") == "anana", "Test Case 4: Character appears only once"
+assert remove_Occ("mississippi", "p") == "mississipp", "Test Case 5: Character appears only in the middle"
+```
+
+## Prompt 2:
+```
+def sort_matrix(M):
+    """
+    Write a function to sort a given matrix in ascending order according to the sum of its rows.
+    """
+
+```
+
+## Completion 2:
+```
+assert sort_matrix([[3, 2, 1], [6, 5, 4], [9, 8, 7]]) == [[3, 2, 1], [6, 5, 4], [9, 8, 7]], "Test Case 1: Rows already sorted by sum"
+assert sort_matrix([[1, 2, 3], [3, 2, 1], [2, 3, 1]]) == [[1, 2, 3], [3, 2, 1], [2, 3, 1]], "Test Case 2: Identical row sums, original order preserved"
+assert sort_matrix([[1, -2, 3], [-1, -2, -3], [4, 5, 6]]) == [[-1, -2, -3], [1, -2, 3], [4, 5, 6]], "Test Case 3: Negative numbers in rows"
+assert sort_matrix([[4, 1, 7]]) == [[4, 1, 7]], "Test Case 4: Single row matrix"
+assert sort_matrix([]) == [], "Test Case 5: Empty matrix"
+```
