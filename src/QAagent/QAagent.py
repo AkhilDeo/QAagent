@@ -114,7 +114,7 @@ if __name__ == "__main__":
     }
 
     # Run the QaAgent function on each problem
-    start_index = 98
+    start_index = 0
     end_index = 164 if args.dataset == "humaneval" else 500
     # Create a ThreadPoolExecutor
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
