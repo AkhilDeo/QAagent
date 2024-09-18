@@ -1,0 +1,50 @@
+**Role**: You are a software programmer.
+
+**Task**: As a programmer, you are required to plan out how you will write the function. Use a Chain-of-Thought approach to break down the problem and create pseudocode.
+
+**Plan Formatting**: Please write plan in this
+```
+    #
+    #
+    #
+```
+format.
+
+# For example:
+
+## Prompt 1:
+```
+def remove_Occ(s,ch):
+    """
+    Write a python function to remove first and last occurrence of a given character from the string.
+    """
+
+```
+
+## Completion 1:
+```
+    # Check if the character exists in the string.
+    # If not, return the original string as there's nothing to remove.
+    # Find the index of the first occurrence of the character.
+    # Find the index of the last occurrence of the character.
+    # Remove the first occurrence of the character from the string.
+    # If the first and last occurrence are at different positions,
+    # remove the last occurrence of the character from the string.
+    # Return the modified string.
+```
+
+## Prompt 2:
+```
+def sort_matrix(M):
+    """
+    Write a function to sort a given matrix in ascending order according to the sum of its rows.
+    """
+
+```
+
+## Completion 2:
+```
+    # Calculate the sum of each row in the matrix.
+    # Sort the rows of the matrix based on their respective sums in ascending order.
+    # Return the sorted matrix.
+```

@@ -1,17 +1,15 @@
 import os
 import logging
-import coverage
 from datetime import datetime
 from utils.input import read_problems
 from utils.logging import write_plan_and_tests_qa
 from agents.code_architect_agent import architect_code
 from agents.test_generator_agent import generate_test_code
-import json
-from io import StringIO
-import subprocess
-import runpy
 import concurrent.futures
 from tools.parse_coverage_html import extract_success_percentage
+from utils.coverage import get_coverage
+from utils.accuracy import get_accuracy
+import argparse
 
 # Create a timestamped folder for logs
 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -44,64 +42,7 @@ def add_canonical_solution(problem_name):
 {problem_name["canonical_solution"]}
 """
 
-def calculate_average_coverage(log_folder):
-    total_line_coverage = 0
-    total_branch_coverage = 0
-    count = 0
-
-    for filename in os.listdir(log_folder):
-        if filename.startswith('coverage_data_') and filename.endswith('.json'):
-            with open(os.path.join(log_folder, filename), 'r') as f:
-                data = json.load(f)
-                total_line_coverage += data['line_coverage']
-                total_branch_coverage += data['branch_coverage']
-                count += 1
-
-    if count > 0:
-        avg_line_coverage = total_line_coverage / count
-        avg_branch_coverage = total_branch_coverage / count
-        return avg_line_coverage, avg_branch_coverage
-    else:
-        return 0, 0
-
-def get_coverage(code_string, test_string, problem_id):
-    # Create a temporary module to hold the code
-
-    # write code string to a file in the problem_id folder called temp_problem_id.py
-    with open(os.path.join(log_folder, f'problem_{problem_id}', 'temp.py'), 'w') as f2:
-        f2.write(code_string)
-        f2.write("\n" + test_string)
-
-    # Set up coverage
-    cov = coverage.Coverage()
-
-    # Run the tests
-    test_result = StringIO()
-    try:
-        cov.start()
-        # Execute temp.py
-        runpy.run_path(os.path.join(log_folder, f'problem_{problem_id}', 'temp.py'))
-
-        # Run coverage and execute the file, Generate a coverage report
-        subprocess.run(['coverage', 'run', os.path.join(log_folder, f'problem_{problem_id}', 'temp.py')])
-        print("All tests passed successfully!")
-    except AssertionError as e:
-        print(f"Test failed: {str(e)}")
-    except Exception as e:
-        print(f"An error occurred during testing: {str(e)}")
-    finally:
-        # Stop coverage and generate report
-        cov.stop()
-        cov.save()
-
-    # Get coverage report
-    report_output = StringIO()
-    cov.report(show_missing=True, file=report_output)
-    cov.html_report(directory=os.path.join(log_folder, f'problem_{problem_id}'))
-    coverage_report = report_output.getvalue()
-    return test_result.getvalue(), coverage_report
-
-def qaAgent(problem_name, model_name):
+def qaAgent(problem_name, dataset, model_name, code_architect_prompt, test_generator_prompt):
     num_input_tokens = 0
     num_output_tokens = 0
     problem_id = problem_name["task_id"]
@@ -110,7 +51,7 @@ def qaAgent(problem_name, model_name):
 
     # generate pseudocode from problem["prompt"]
     logger.info(f'Generating pseudocode for problem ID {problem_id}')
-    plan, plan_input_tokens, plan_output_tokens = architect_code(problem_name,"prompts/v1/code_architect_zero_shot.txt", model_name)
+    plan, plan_input_tokens, plan_output_tokens = architect_code(problem_name,code_architect_prompt, model_name)
     num_input_tokens += plan_input_tokens
     num_output_tokens += plan_output_tokens
     logger.info(f'Generated plan for problem ID {problem_id}: {plan}')
@@ -120,7 +61,7 @@ def qaAgent(problem_name, model_name):
 
     logger.info(f'Generating tests for problem ID {problem_id}')
     try:
-        generated_tests, generated_test_input_tokens, generated_test_output_tokens = generate_test_code(add_plan(problem_name, plan), problem_id, "prompts/v1/test_generator_zero_shot.txt", model_name, logger)
+        generated_tests, generated_test_input_tokens, generated_test_output_tokens, _ = generate_test_code(add_plan(problem_name, plan), problem_id, test_generator_prompt, model_name, logger)
     except Exception as e:
         logger.error(f'Error in problem ID {problem_id}: {e}')
         return 0, 0
@@ -135,83 +76,145 @@ def qaAgent(problem_name, model_name):
     # check the code coverage of the generated tests
     logger.info(f'Checking code coverage for problem ID {problem_id}')
 
-    test_results, coverage_report = get_coverage(add_canonical_solution(problem_name), generated_tests, problem_id)
+    first_five_coverage_report, total_coverage_report = get_coverage(add_canonical_solution(problem_name) if dataset == "humaneval" else problem_name["canonical_solution"], generated_tests, problem_id, log_folder)
 
     problem_folder = os.path.join(log_folder, f'problem_{problem_id}')
 
+    # Calculate generated tests accuracy on the canonical solution. # passes / total tests
+    accuracy, test_results = get_accuracy(add_canonical_solution(problem_name) if args.dataset == "humaneval" else problem_name["canonical_solution"], generated_tests, problem_folder, problem_id)
 
-    # Read HTML content from a file or string
-    with open(os.path.join(problem_folder, 'class_index.html'), 'r', encoding='utf-8') as file:
-        html_content = file.read()
+    with open(os.path.join(problem_folder, 'test_results_accuracy.txt'), 'w') as f2:
+        f2.write(test_results)
+
+    with open(os.path.join(problem_folder, 'first_five_coverage', 'function_index.html'), 'r', encoding='utf-8') as file:
+        html_content_first_five = file.read()
+
+    with open(os.path.join(problem_folder, 'total_coverage', 'function_index.html'), 'r', encoding='utf-8') as file:
+        html_content_total = file.read()
 
     # Extract and print the success percentage
-    coverage_percentage = 0.0
+    current_first_five_coverage_percentage = 0.0
+    current_total_coverage_percentage = 0.0
     try:
-        success_percentage = extract_success_percentage(html_content)
-        print(f'Success Percentage: {success_percentage}')
-        coverage_percentage = float(success_percentage.rstrip('%'))
+        first_five_success_percentage = extract_success_percentage(html_content_first_five, problem_name["entry_point"])
+        print(f'First Five Success Percentage: {first_five_success_percentage}')
+        current_first_five_coverage_percentage = float(first_five_success_percentage.rstrip('%'))
+        total_success_percentage = extract_success_percentage(html_content_total, problem_name["entry_point"])
+        print(f'Total Success Percentage: {total_success_percentage}')
+        current_total_coverage_percentage = float(total_success_percentage.rstrip('%'))
     except ValueError as e:
         print(e)
 
     print("Test Results:")
     print(test_results)
-    print("\nCoverage Report:")
-    print(coverage_report)
+    print("\nFirst Five Coverage Report:")
+    print(first_five_coverage_report)
+    print("\nTotal Five Coverage Report:")
+    print(total_coverage_report)
 
-    with open(os.path.join(problem_folder, 'test_results.txt'), 'w') as f2:
-        f2.write(test_results)
+    with open(os.path.join(problem_folder, 'first_five_coverage_report.txt'), 'w') as f2:
+        f2.write(first_five_coverage_report)
 
-    with open(os.path.join(problem_folder, 'coverage_report.txt'), 'w') as f2:
-        f2.write(coverage_report)
+    with open(os.path.join(problem_folder, 'total_coverage_report.txt'), 'w') as f2:
+        f2.write(total_coverage_report)
 
     # Log the results
     logger.info(f'Finished processing problem ID {problem_id}')
     logger.info(f'Number of input tokens for problem ID {problem_id}: {num_input_tokens}\nNumber of output tokens for problem ID {problem_id}: {num_output_tokens}')
-    return coverage_percentage, num_input_tokens, num_output_tokens
+    return current_first_five_coverage_percentage, current_total_coverage_percentage, accuracy, num_input_tokens, num_output_tokens
 
 
-def process_problem(problem, model, log_folder):
+def process_problem(problem, model, dataset, log_folder, code_architect_prompt, test_generator_prompt):
     try:
-        coverage_percentage, cur_num_input_tokens, cur_num_output_tokens = qaAgent(problem, model)
-        return problem["task_id"], cur_num_input_tokens, cur_num_output_tokens, coverage_percentage
+        curr_first_five_coverage_percentage, curr_total_coverage_percentage, accuracy_percentage, curr_num_input_tokens, curr_num_output_tokens = qaAgent(problem, dataset, model, code_architect_prompt, test_generator_prompt)
+        return problem["task_id"], curr_num_input_tokens, curr_num_output_tokens, curr_first_five_coverage_percentage, curr_total_coverage_percentage, accuracy_percentage
     except Exception as e:
         logger.error(f'Error in problem ID {problem["task_id"]}: {e}')
         with open(os.path.join(log_folder, 'errors.txt'), 'a') as f:
             f.write(f'Error in problem ID {problem["task_id"]}: {e}\n')
-        return problem["task_id"], 0, 0, 0.0  # Return 0 tokens if there's an error
+        return problem["task_id"], 0, 0, 0.0, 0.0, 0.0  # Return 0 tokens if there's an error
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Specify dataset and model.")
+
+    parser.add_argument(
+        "--dataset",
+        choices=["humaneval", "mbpp"],
+        default="mbpp",
+        help="Choose the dataset to use (humaneval or mbpp)."
+    )
+
+    parser.add_argument(
+        "--model",
+        default="gpt-4o",
+        help="Specify the model to use."
+    )
+    return parser.parse_args()
 
 if __name__ == "__main__":
+    args = parse_args()
+
     # Load the model
-    # model = "gpt-4o"
-    model = "gpt-4"
+    model = args.model
+    print(f"Using model: {model}")
+
+    # Load the problems based on dataset choice
+    dataset_map = {
+        "humaneval": "datasets/humaneval/problems.jsonl",
+        "mbpp": "datasets/mbpp/problems.jsonl"
+    }
+
+    # Map dataset to its respective prompt paths
+    prompt_paths = {
+        "humaneval": {
+            "code_architect": "prompts/v1/code_architect_humaneval_prompt.txt",
+            "test_generator": "prompts/v1/test_generator_humaneval_prompt.txt"
+        },
+        "mbpp": {
+            "code_architect": "prompts/v1/code_architect_mbpp_prompt.txt",
+            "test_generator": "prompts/v1/test_generator_mbpp_prompt.txt"
+        }
+    }
+
+    # Select the appropriate prompt files based on the dataset
+    code_architect_prompt = prompt_paths[args.dataset]["code_architect"]
+    test_generator_prompt = prompt_paths[args.dataset]["test_generator"]
+
     # Load the problems
-    problems = read_problems("datasets/humaneval/problems.jsonl")
+    problems = read_problems(dataset_map[args.dataset])
+    print(f"Loaded problems from: {dataset_map[args.dataset]}")
 
     total_input_tokens = 0
     total_output_tokens = 0
     num_problems_evaluated = 0
+    total_first_five_coverage_percentage = 0.0
     total_coverage_percentage = 0.0
+    total_accuracy_percentage = 0.0
 
     # Run the QaAgent function on each problem
-    start_index = 0
-    end_index = 164
+    start_index = 98
+    end_index = 164 if args.dataset == "humaneval" else 500
     # Create a ThreadPoolExecutor
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         # Submit all problems to the executor
-        future_to_problem = {executor.submit(process_problem, problems[i], model, log_folder): i for i in
+        future_to_problem = {executor.submit(process_problem, problems[i], model, args.dataset, log_folder, code_architect_prompt, test_generator_prompt): i for i in
                              range(start_index, end_index)}
 
         for future in concurrent.futures.as_completed(future_to_problem):
             problem_index = future_to_problem[future]
             try:
-                problem_id, cur_num_input_tokens, cur_num_output_tokens, coverage_percentage = future.result()
+                problem_id, cur_num_input_tokens, cur_num_output_tokens, cur_first_five_coverage_percentage, cur_total_coverage_percentage, cur_accuracy_percentage = future.result()
                 total_input_tokens += cur_num_input_tokens
                 total_output_tokens += cur_num_output_tokens
                 num_problems_evaluated += 1
-                total_coverage_percentage += coverage_percentage
+                total_first_five_coverage_percentage += cur_first_five_coverage_percentage
+                total_coverage_percentage += cur_total_coverage_percentage
+                total_accuracy_percentage += cur_accuracy_percentage
 
                 with open(os.path.join(log_folder, 'summary.txt'), 'w') as f:
                     # Log the total number of problems evaluated, total passed, percentage, total input tokens, and total output tokens
+                    f.write(f'Total accuracy percentage: {total_accuracy_percentage / num_problems_evaluated}\n')
+                    f.write(f'Total first five coverage percentage: {total_first_five_coverage_percentage / num_problems_evaluated}\n')
                     f.write(f'Total coverage percentage: {total_coverage_percentage / num_problems_evaluated}\n')
                     f.write(f'Total number of problems evaluated: {num_problems_evaluated}\n')
                     f.write(f'Total number of input tokens: {total_input_tokens}\n')
@@ -220,7 +223,9 @@ if __name__ == "__main__":
                 # Log the results and scores to a detail.txt file for each problem
                 with open(os.path.join(log_folder, 'details.txt'), 'a') as f:
                     f.write(f'Problem ID: {problem_id}\n')
-                    f.write(f'Coverage Percentage: {coverage_percentage}\n')
+                    f.write(f'Accuracy Percentage: {cur_accuracy_percentage}\n')
+                    f.write(f'First Five Coverage Percentage: {cur_first_five_coverage_percentage}\n')
+                    f.write(f'Coverage Percentage: {cur_total_coverage_percentage}\n')
                     f.write(f'Number of input tokens: {cur_num_input_tokens}\n')
                     f.write(f'Number of output tokens: {cur_num_output_tokens}\n')
             except Exception as e:
