@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument(
         "--dataset",
         choices=["humaneval", "mbpp"],
-        default="mbpp",
+        default="humaneval",
         help="Choose the dataset to use (humaneval or mbpp)."
     )
 
