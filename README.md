@@ -10,6 +10,33 @@ QAagent's first agent, the architect agent, thinks in a step-by-step fashion how
 ### Test Generator Agent
 After the code architect agent is done, the test generator agent takes the pseudocode, as well as the function header and the comment for the function header, and generates unit tests for the function. The pseudocode enables the LLM to generate tests with greater coverage than existing unit test generation methodologies.
 
+## Results of QAagent on 2 Benchmarks
+
+We evaluated QAagent on test generation on problems from two benchmarks: Humaneval and MBPP. The results are shown below.
+
+### Coverage
+
+| **Model**      | **Approach**  | **Humaneval** | **MBPP**   |
+|----------------| --------      |-----------|------------|
+| ChatGPT        | Direct       | 67.1      | 58.4       |
+| GPT-3.5 Turbo  | Direct       | 70.2      | 61.3       |
+| -              | CodeCoT      | 77.2      | 82.9       |
+| GPT-3.5 Turbo  | AgentCoder   | 87.5      | 89.5       |
+| GPT-4          | MetaGPT      | 81.7      | 80.5       |
+| GPT-4          | AgentCoder   | 91.7      | 92.3       |
+| GPT-4 Turbo    | QAagent      | 96.6      | 87.9       |
+
+### Accuracy
+
+| **Model**     | **Approach** | **Humaneval** | **MBPP** |
+|---------------|--------------|---------------|----------|
+| GPT-3.5 Turbo | Direct       | 47.0          | 57.2     |
+| -             | CodeCoT      | 67.1          | 79.0     |
+| GPT-3.5 Turbo | AgentCoder   | 87.8          | 89.9     |
+| GPT-4         | MetaGPT      | 79.3          | 84.4     |
+| GPT-4         | AgentCoder   | 89.6          | 91.4     |
+| GPT-4 Turbo   | QAagent      | 88.6          | 52.7     |
+
 ## Installation
 
 To use QAagent, first ensure that you have an API key from OpenAI. QAagent has only been tested with `GPT-4`, `GPT-4-Turbo`, and `GPT-4o`.
@@ -50,18 +77,4 @@ echo 'OPENAI_API_KEY=your-api-key-here' >> .env
 python3 src/QAagent/QAagent.py --dataset humaneval --model gpt-4o
 ```
 
-Dataset can be `humaneval` or `mbpp` and model can be any valid OpenAI model ID, but has only been tested with `gpt-4`, `gpt-4-turbo`, or `gpt-4o`.
-
-## Results of QAagent on 2 Benchmarks
-
-We evaluated QAagent on test generation on problems from two benchmarks: Humaneval and MBPP. The results are shown below.
-
-### Coverage
-
-Following the manner in which coverage is presented in other works, we present the coverage of the first 5 tests / coverage of all generated tests.
-
-**Approach** | **Humaneval** | **MBPP**
-
-### Accuracy
-
-**Approach** | **Humaneval** | **MBPP**
+Dataset can be `humaneval` or `mbpp` and model can be any valid OpenAI model ID, but has only been tested with `gpt-4`, `gpt-4-turbo`, and `gpt-4o`.
